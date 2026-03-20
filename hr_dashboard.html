@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PeopleOS — HR Intelligence Platform</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --surface: #ffffff;
+    --surface2: #f0f0ed;
+    --border: #e8e8e4;
+    --text: #1a1a18;
+    --text2: #6b6b65;
+    --text3: #a0a09a;
+    --accent: #2563eb;
+    --accent2: #7c3aed;
+    --accent3: #059669;
+    --accent4: #dc2626;
+    --accent5: #d97706;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --nav-h: 64px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  h1,h2,h3,h4 { font-family: 'Syne', sans-serif; }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    height: var(--nav-h); background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(16px); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px; gap: 16px;
+  }
+  .nav-brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .nav-logo { width: 32px; height: 32px; background: var(--text); border-radius: 8px; display: grid; place-items: center; }
+  .nav-logo span { color: #fff; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; }
+  .nav-brand h2 { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
+  .nav-brand h2 span { color: var(--accent); }
+  .nav-tabs { display: flex; gap: 4px; background: var(--surface2); border-radius: 12px; padding: 4px; }
+  .nav-tab {
+    padding: 7px 16px; border-radius: 8px; border: none; background: none;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    color: var(--text2); cursor: pointer; transition: all .25s; white-space: nowrap;
+  }
+  .nav-tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+  .nav-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .live-pill {
+    display: flex; align-items: center; gap: 6px; padding: 5px 12px;
+    background: #dcfce7; border-radius: 20px; font-size: 12px; font-weight: 600; color: #15803d;
+  }
+  .live-dot { width: 6px; height: 6px; background: #16a34a; border-radius: 50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,#6366f1,#8b5cf6); display: grid; place-items: center; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+  /* ── CONTROL PANEL ── */
+  .control-panel {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 14px 28px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;
+  }
+  .mode-toggle-wrap { display: flex; align-items: center; gap: 10px; }
+  .mode-label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
+  .mode-toggle {
+    display: flex; background: var(--surface2); border-radius: 10px; padding: 3px; gap: 2px;
+  }
+  .mode-btn {
+    padding: 6px 14px; border-radius: 7px; border: none; background: none;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all .2s; color: var(--text2);
+  }
+  .mode-btn.active { background: var(--text); color: #fff; }
+  .ctrl-sep { width: 1px; height: 24px; background: var(--border); }
+  .ctrl-select {
+    padding: 7px 14px; border: 1.5px solid var(--border); border-radius: 9px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--surface);
+    color: var(--text); cursor: pointer; outline: none; transition: border-color .2s;
+  }
+  .ctrl-select:focus { border-color: var(--accent); }
+  .search-wrap { margin-left: auto; position: relative; }
+  .search-input {
+    padding: 8px 14px 8px 36px; border: 1.5px solid var(--border); border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; width: 220px; outline: none;
+    transition: all .2s; background: var(--bg);
+  }
+  .search-input:focus { border-color: var(--accent); background: var(--surface); width: 260px; }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--text3); }
+  .search-results {
+    position: absolute; top: calc(100% + 6px); right: 0; width: 300px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow-lg); z-index: 200; display: none; max-height: 320px; overflow-y: auto;
+  }
+  .search-results.open { display: block; }
+  .search-item { padding: 10px 14px; cursor: pointer; display: flex; gap: 10px; align-items: center; transition: background .15s; }
+  .search-item:hover { background: var(--surface2); }
+  .s-avatar { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .s-name { font-size: 13px; font-weight: 600; }
+  .s-dept { font-size: 11px; color: var(--text2); }
+
+  /* ── INSIGHT TICKER ── */
+  .insight-bar {
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%);
+    padding: 8px 28px; display: flex; align-items: center; gap: 12px; overflow: hidden;
+  }
+  .insight-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.7); text-transform: uppercase; letter-spacing: .5px; flex-shrink: 0; }
+  .insight-text { font-size: 13px; color: #fff; font-weight: 500; animation: slideIn .5s ease; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── MAIN ── */
+  main { padding: 28px; max-width: 1440px; margin: 0 auto; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: fadeUp .35s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .kpi-card {
+    background: var(--surface); border-radius: var(--radius); padding: 20px 22px;
+    box-shadow: var(--shadow); cursor: pointer; transition: all .2s; border: 1.5px solid transparent; position: relative; overflow: hidden;
+  }
+  .kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--border); }
+  .kpi-card::before { content:''; position:absolute; top:0; right:0; width:60px; height:60px; border-radius: 0 var(--radius) 0 60px; opacity:.08; }
+  .kpi-card.blue::before { background: var(--accent); }
+  .kpi-card.purple::before { background: var(--accent2); }
+  .kpi-card.green::before { background: var(--accent3); }
+  .kpi-card.red::before { background: var(--accent4); }
+  .kpi-card.amber::before { background: var(--accent5); }
+  .kpi-icon { font-size: 18px; margin-bottom: 10px; }
+  .kpi-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+  .kpi-value { font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800; line-height: 1; margin-bottom: 6px; }
+  .kpi-delta { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+  .kpi-delta.up { color: var(--accent3); }
+  .kpi-delta.down { color: var(--accent4); }
+  .kpi-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .kpi-sparkline { position: absolute; bottom: 0; right: 0; left: 0; height: 3px; }
+  .kpi-progress-wrap { margin-top: 10px; }
+  .kpi-progress-bar { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .kpi-progress-fill { height: 100%; border-radius: 2px; transition: width .8s cubic-bezier(.4,0,.2,1); }
+  .blue .kpi-progress-fill { background: var(--accent); }
+  .purple .kpi-progress-fill { background: var(--accent2); }
+  .green .kpi-progress-fill { background: var(--accent3); }
+  .red .kpi-progress-fill { background: var(--accent4); }
+  .amber .kpi-progress-fill { background: var(--accent5); }
+
+  /* ── GRID LAYOUTS ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-70-30 { display: grid; grid-template-columns: 1.8fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-60-40 { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media(max-width:900px) { .grid-2,.grid-3,.grid-70-30,.grid-60-40 { grid-template-columns: 1fr; } }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface); border-radius: var(--radius); padding: 22px;
+    box-shadow: var(--shadow); border: 1px solid var(--border);
+  }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .card-title { font-size: 14px; font-weight: 700; }
+  .card-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+  .badge-blue { background: #dbeafe; color: #1d4ed8; }
+  .badge-green { background: #dcfce7; color: #15803d; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+  .badge-purple { background: #ede9fe; color: #5b21b6; }
+
+  /* ── CHART WRAPPER ── */
+  .chart-wrap { position: relative; height: 220px; }
+  .chart-wrap.tall { height: 280px; }
+  .chart-wrap.short { height: 160px; }
+
+  /* ── TABLE ── */
+  .mini-table { width: 100%; border-collapse: collapse; }
+  .mini-table th { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .4px; padding: 0 0 10px; text-align: left; }
+  .mini-table td { padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+  .mini-table tr:last-child td { border-bottom: none; }
+  .mini-table tr { cursor: pointer; transition: background .15s; }
+  .mini-table tr:hover td { background: var(--bg); }
+
+  /* ── LEADERBOARD ── */
+  .lb-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 0;
+    border-bottom: 1px solid var(--border); cursor: pointer; transition: background .15s;
+  }
+  .lb-item:last-child { border-bottom: none; }
+  .lb-item:hover { background: var(--bg); border-radius: 8px; padding: 10px 6px; margin: 0 -6px; }
+  .lb-rank { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 800; width: 24px; text-align: center; }
+  .lb-rank.gold { color: #f59e0b; }
+  .lb-rank.silver { color: #94a3b8; }
+  .lb-rank.bronze { color: #b45309; }
+  .lb-av { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .lb-info { flex: 1; min-width: 0; }
+  .lb-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lb-dept { font-size: 11px; color: var(--text2); }
+  .lb-score { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800; }
+  .lb-bar-wrap { width: 80px; }
+  .lb-bar { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .lb-bar-fill { height: 100%; border-radius: 3px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+
+  /* ── XP PROGRESS ── */
+  .xp-bar-wrap { margin: 8px 0; }
+  .xp-bar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+  .xp-bar { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .xp-fill { height: 100%; border-radius: 4px; transition: width .9s cubic-bezier(.4,0,.2,1); }
+
+  /* ── BADGE GRID ── */
+  .badge-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .badge-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 10px 12px; border-radius: 10px; background: var(--surface2);
+    cursor: pointer; transition: all .2s; font-size: 20px;
+  }
+  .badge-item:hover { transform: scale(1.15); box-shadow: var(--shadow); }
+  .badge-item.earned { background: linear-gradient(135deg,#fef3c7,#fde68a); }
+  .badge-item span { font-size: 10px; font-weight: 600; color: var(--text2); }
+
+  /* ── EMPLOYEE CARD ── */
+  .emp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+  .emp-card {
+    background: var(--surface); border-radius: var(--radius); padding: 18px;
+    box-shadow: var(--shadow); cursor: pointer; transition: all .2s;
+    border: 1.5px solid transparent; text-align: center;
+  }
+  .emp-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--accent); }
+  .emp-av-lg { width: 52px; height: 52px; border-radius: 50%; margin: 0 auto 10px; display: grid; place-items: center; font-size: 18px; font-weight: 700; color: #fff; }
+  .emp-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+  .emp-role { font-size: 11px; color: var(--text2); margin-bottom: 10px; }
+  .emp-stat { font-size: 11px; font-weight: 600; display: flex; justify-content: space-between; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.35); backdrop-filter: blur(4px);
+    z-index: 1000; display: none; place-items: center;
+  }
+  .modal-overlay.open { display: grid; animation: fadeIn .2s ease; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  .modal {
+    background: var(--surface); border-radius: 20px; padding: 30px; width: min(600px, 95vw);
+    max-height: 85vh; overflow-y: auto; box-shadow: 0 24px 80px rgba(0,0,0,.2);
+    animation: modalIn .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes modalIn { from{transform:scale(.9);opacity:0} to{transform:scale(1);opacity:1} }
+  .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+  .modal-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--surface2); cursor: pointer; font-size: 16px; display: grid; place-items: center; transition: background .2s; }
+  .modal-close:hover { background: var(--border); }
+
+  /* ── NOTIFICATION TOAST ── */
+  .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--text); color: #fff; padding: 12px 18px; border-radius: 12px;
+    font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg);
+    animation: toastIn .3s cubic-bezier(.34,1.56,.64,1); max-width: 320px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .toast.removing { animation: toastOut .3s ease forwards; }
+  @keyframes toastIn { from{opacity:0;transform:translateX(80px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes toastOut { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(80px)} }
+
+  /* ── GAMIFICATION HUB ── */
+  .level-banner {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+    border-radius: var(--radius); padding: 28px; color: #fff; margin-bottom: 20px; position: relative; overflow: hidden;
+  }
+  .level-banner::before {
+    content:''; position:absolute; top:-40px; right:-40px; width:200px; height:200px;
+    background: rgba(255,255,255,.05); border-radius: 50%;
+  }
+  .level-banner::after {
+    content:''; position:absolute; bottom:-60px; left:30%; width:160px; height:160px;
+    background: rgba(255,255,255,.03); border-radius: 50%;
+  }
+  .level-title { font-size: 11px; font-weight: 600; opacity: .7; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; }
+  .level-name { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; margin-bottom: 16px; }
+  .level-xp-wrap { display: flex; align-items: center; gap: 14px; }
+  .level-xp-bar { flex: 1; height: 10px; background: rgba(255,255,255,.15); border-radius: 5px; overflow: hidden; }
+  .level-xp-fill { height: 100%; background: linear-gradient(90deg, #a78bfa, #60a5fa); border-radius: 5px; transition: width 1.2s cubic-bezier(.4,0,.2,1); }
+  .level-xp-label { font-size: 12px; font-weight: 600; opacity: .9; flex-shrink: 0; }
+
+  .challenge-item {
+    display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border);
+  }
+  .challenge-item:last-child { border-bottom: none; }
+  .challenge-icon { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
+  .challenge-info { flex: 1; }
+  .challenge-name { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .challenge-desc { font-size: 11px; color: var(--text2); }
+  .challenge-prog { margin-top: 6px; }
+  .challenge-bar { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .challenge-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width .8s; }
+  .challenge-xp { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 800; color: var(--accent2); flex-shrink: 0; }
+
+  /* ── ATTRITION RISK ── */
+  .risk-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .risk-item:last-child { border-bottom: none; }
+  .risk-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .risk-high { background: var(--accent4); }
+  .risk-med { background: var(--accent5); }
+  .risk-low { background: var(--accent3); }
+  .risk-name { flex: 1; font-size: 13px; font-weight: 500; }
+  .risk-label { font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 20px; }
+  .rl-high { background: #fee2e2; color: #991b1b; }
+  .rl-med { background: #fef3c7; color: #92400e; }
+  .rl-low { background: #dcfce7; color: #15803d; }
+
+  /* ── RECRUITMENT FUNNEL ── */
+  .funnel-item { margin-bottom: 10px; }
+  .funnel-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 5px; }
+  .funnel-bar { height: 28px; border-radius: 6px; transition: width .8s cubic-bezier(.4,0,.2,1); display: flex; align-items: center; padding-left: 12px; font-size: 12px; font-weight: 700; color: #fff; }
+
+  /* ── DEPT CHIPS ── */
+  .dept-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .dept-chip {
+    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    cursor: pointer; border: 1.5px solid var(--border); background: var(--surface);
+    transition: all .2s; color: var(--text2);
+  }
+  .dept-chip.active { background: var(--text); color: #fff; border-color: var(--text); }
+
+  /* ── ANIMATED NUMBER ── */
+  .num-anim { transition: color .3s; }
+  .num-anim.flash { color: var(--accent3); }
+
+  /* ── SECTION TITLE ── */
+  .section-title { font-size: 12px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 12px; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+  /* ── SPARKLINE ── */
+  canvas.sparkline { display: block; }
+
+  /* ── STATUS DOTS ── */
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .s-active { background: var(--accent3); }
+  .s-warn { background: var(--accent5); }
+  .s-inactive { background: var(--text3); }
+
+  /* ── TREND CHART ── */
+  .trend-up { color: var(--accent3); }
+  .trend-down { color: var(--accent4); }
+
+  /* ── MINI STAT PAIR ── */
+  .stat-pair { display: flex; gap: 16px; }
+  .stat-mini { flex: 1; background: var(--surface2); border-radius: 10px; padding: 12px 14px; }
+  .stat-mini-val { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; }
+  .stat-mini-label { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+  .gap-bottom { margin-bottom: 16px; }
+  .text-sm { font-size: 12px; color: var(--text2); }
+  .mt-8 { margin-top: 8px; }
+
+  /* Pie legend */
+  .pie-legend { display: flex; flex-direction: column; gap: 8px; }
+  .pie-legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .pie-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .pie-legend-label { flex: 1; color: var(--text2); }
+  .pie-legend-val { font-weight: 700; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo"><span>P</span></div>
+    <h2>People<span>OS</span></h2>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-tab="workforce">Workforce Overview</button>
+    <button class="nav-tab" data-tab="performance">Performance & Productivity</button>
+    <button class="nav-tab" data-tab="attrition">Attrition & Retention</button>
+    <button class="nav-tab" data-tab="recruitment">Recruitment</button>
+    <button class="nav-tab" data-tab="gamification">🎮 Gamification Hub</button>
+  </div>
+  <div class="nav-right">
+    <div class="live-pill"><div class="live-dot"></div>Live</div>
+    <div class="avatar">AR</div>
+  </div>
+</nav>
+
+<!-- CONTROL PANEL -->
+<div class="control-panel">
+  <span class="mode-label">Mode</span>
+  <div class="mode-toggle">
+    <button class="mode-btn active" data-mode="productivity">Productivity</button>
+    <button class="mode-btn" data-mode="performance">Performance</button>
+    <button class="mode-btn" data-mode="kpi">KPI</button>
+  </div>
+  <div class="ctrl-sep"></div>
+  <select class="ctrl-select" id="deptFilter">
+    <option value="all">All Departments</option>
+    <option value="sales">Sales</option>
+    <option value="engineering">Engineering</option>
+    <option value="marketing">Marketing</option>
+    <option value="hr">HR</option>
+    <option value="finance">Finance</option>
+    <option value="operations">Operations</option>
+    <option value="product">Product</option>
+  </select>
+  <select class="ctrl-select" id="locationFilter">
+    <option value="all">All Locations</option>
+    <option value="nyc">New York</option>
+    <option value="sf">San Francisco</option>
+    <option value="london">London</option>
+    <option value="bangalore">Bangalore</option>
+    <option value="dubai">Dubai</option>
+  </select>
+  <select class="ctrl-select" id="timeFilter">
+    <option value="week">Last Week</option>
+    <option value="month">Last Month</option>
+    <option value="quarter">Last Quarter</option>
+  </select>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="searchInput" placeholder="Search employees…" autocomplete="off">
+    <div class="search-results" id="searchResults"></div>
+  </div>
+</div>
+
+<!-- INSIGHT BAR -->
+<div class="insight-bar">
+  <span class="insight-label">✦ Insight</span>
+  <span class="insight-text" id="insightText">Sales team leads in KPI achievement — 94% goal completion rate this quarter</span>
+</div>
+
+<!-- MAIN -->
+<main>
+
+  <!-- ══════════ TAB 1: WORKFORCE OVERVIEW ══════════ -->
+  <div class="tab-panel active" id="tab-workforce">
+    <div class="kpi-grid">
+      <div class="kpi-card blue" data-kpi="headcount">
+        <div class="kpi-icon">👥</div>
+        <div class="kpi-label">Total Headcount</div>
+        <div class="kpi-value num-anim" id="kpi-headcount">1,000</div>
+        <div class="kpi-delta up">▲ +24 <span style="font-weight:400;color:var(--text3)">this period</span></div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:72%"></div></div></div>
+      </div>
+      <div class="kpi-card green" data-kpi="active">
+        <div class="kpi-icon">✅</div>
+        <div class="kpi-label">Active Employees</div>
+        <div class="kpi-value num-anim" id="kpi-active">943</div>
+        <div class="kpi-delta up">▲ +18 <span style="font-weight:400;color:var(--text3)">active</span></div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:94%"></div></div></div>
+      </div>
+      <div class="kpi-card amber" data-kpi="avgtenure">
+        <div class="kpi-icon">📅</div>
+        <div class="kpi-label">Avg Tenure</div>
+        <div class="kpi-value num-anim" id="kpi-avgtenure">3.4<span style="font-size:16px">yr</span></div>
+        <div class="kpi-delta up">▲ +0.2yr</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:58%"></div></div></div>
+      </div>
+      <div class="kpi-card purple" data-kpi="diversity">
+        <div class="kpi-icon">🌍</div>
+        <div class="kpi-label">Diversity Score</div>
+        <div class="kpi-value num-anim" id="kpi-diversity">78<span style="font-size:16px">%</span></div>
+        <div class="kpi-delta up">▲ +3%</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:78%"></div></div></div>
+      </div>
+      <div class="kpi-card red" data-kpi="openroles">
+        <div class="kpi-icon">📌</div>
+        <div class="kpi-label">Open Roles</div>
+        <div class="kpi-value num-anim" id="kpi-openroles">57</div>
+        <div class="kpi-delta down">▼ −3 <span style="font-weight:400;color:var(--text3)">filled</span></div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:45%"></div></div></div>
+      </div>
+    </div>
+
+    <div class="dept-chips" id="deptChips">
+      <div class="dept-chip active" data-dept="all">All</div>
+      <div class="dept-chip" data-dept="sales">Sales</div>
+      <div class="dept-chip" data-dept="engineering">Engineering</div>
+      <div class="dept-chip" data-dept="marketing">Marketing</div>
+      <div class="dept-chip" data-dept="hr">HR</div>
+      <div class="dept-chip" data-dept="finance">Finance</div>
+      <div class="dept-chip" data-dept="operations">Operations</div>
+      <div class="dept-chip" data-dept="product">Product</div>
+    </div>
+
+    <div class="grid-70-30">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Headcount by Department</span>
+          <span class="card-badge badge-blue">Bar Chart</span>
+        </div>
+        <div class="chart-wrap"><canvas id="deptBarChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Employment Type</span>
+          <span class="card-badge badge-purple">Distribution</span>
+        </div>
+        <div style="display:flex;gap:16px;align-items:center">
+          <div style="flex:1"><div class="chart-wrap short"><canvas id="empTypePie"></canvas></div></div>
+          <div class="pie-legend" id="empTypeLegend"></div>
+        </div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Headcount Trend</span>
+          <span class="card-badge badge-green">12 Months</span>
+        </div>
+        <div class="chart-wrap"><canvas id="headcountTrend"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Age & Tenure Distribution</span>
+          <span class="card-badge badge-amber">Demographics</span>
+        </div>
+        <div class="chart-wrap"><canvas id="ageChart"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Top Employees — Workforce Snapshot</span>
+        <span class="card-badge badge-blue">Live Data</span>
+      </div>
+      <div class="emp-grid" id="empGrid"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB 2: PERFORMANCE ══════════ -->
+  <div class="tab-panel" id="tab-performance">
+    <div class="kpi-grid">
+      <div class="kpi-card green" data-kpi="avgperf">
+        <div class="kpi-icon">⭐</div>
+        <div class="kpi-label">Avg Performance</div>
+        <div class="kpi-value num-anim" id="kpi-avgperf">4.1</div>
+        <div class="kpi-delta up">▲ +0.3 vs last period</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:82%"></div></div></div>
+      </div>
+      <div class="kpi-card blue" data-kpi="goalcomp">
+        <div class="kpi-icon">🎯</div>
+        <div class="kpi-label">Goal Completion</div>
+        <div class="kpi-value num-anim" id="kpi-goalcomp">87<span style="font-size:16px">%</span></div>
+        <div class="kpi-delta up">▲ +5%</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:87%"></div></div></div>
+      </div>
+      <div class="kpi-card amber" data-kpi="productindex">
+        <div class="kpi-icon">⚡</div>
+        <div class="kpi-label">Productivity Index</div>
+        <div class="kpi-value num-anim" id="kpi-productindex">76</div>
+        <div class="kpi-delta up">▲ +12 pts</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:76%"></div></div></div>
+      </div>
+      <div class="kpi-card red" data-kpi="lowperf">
+        <div class="kpi-icon">⚠️</div>
+        <div class="kpi-label">Low Performers</div>
+        <div class="kpi-value num-anim" id="kpi-lowperf">43</div>
+        <div class="kpi-delta down">▼ −7 improved</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:43%"></div></div></div>
+      </div>
+      <div class="kpi-card purple" data-kpi="topperf">
+        <div class="kpi-icon">🏆</div>
+        <div class="kpi-label">Top Performers</div>
+        <div class="kpi-value num-anim" id="kpi-topperf">198</div>
+        <div class="kpi-delta up">▲ +12</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:66%"></div></div></div>
+      </div>
+    </div>
+
+    <div class="grid-70-30">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Performance Distribution by Department</span>
+          <span class="card-badge badge-blue">Heatmap</span>
+        </div>
+        <div class="chart-wrap tall"><canvas id="perfRadar"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🏆 Leaderboard</span><span class="card-badge badge-amber">Top 8</span></div>
+        <div id="leaderboard"></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Goal Completion Trend</span><span class="card-badge badge-green">Monthly</span></div>
+        <div class="chart-wrap"><canvas id="goalTrend"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Performance Score Distribution</span><span class="card-badge badge-purple">All Employees</span></div>
+        <div class="chart-wrap"><canvas id="perfDist"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Low Performer Details</span><span class="card-badge badge-red" id="lowPerfCount">43 employees</span></div>
+      <table class="mini-table" id="lowPerfTable">
+        <thead><tr><th>Employee</th><th>Dept</th><th>Score</th><th>Status</th><th>Manager</th></tr></thead>
+        <tbody id="lowPerfBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB 3: ATTRITION ══════════ -->
+  <div class="tab-panel" id="tab-attrition">
+    <div class="kpi-grid">
+      <div class="kpi-card red" data-kpi="attrrate">
+        <div class="kpi-icon">📉</div>
+        <div class="kpi-label">Attrition Rate</div>
+        <div class="kpi-value num-anim" id="kpi-attrrate">11.2<span style="font-size:16px">%</span></div>
+        <div class="kpi-delta down">▲ +1.2% vs target</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:56%"></div></div></div>
+      </div>
+      <div class="kpi-card amber" data-kpi="retrate">
+        <div class="kpi-icon">🔒</div>
+        <div class="kpi-label">Retention Rate</div>
+        <div class="kpi-value num-anim" id="kpi-retrate">88.8<span style="font-size:16px">%</span></div>
+        <div class="kpi-delta up">▲ +2.1%</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:89%"></div></div></div>
+      </div>
+      <div class="kpi-card red" data-kpi="atrisk">
+        <div class="kpi-icon">🚨</div>
+        <div class="kpi-label">At-Risk Employees</div>
+        <div class="kpi-value num-anim" id="kpi-atrisk">68</div>
+        <div class="kpi-delta down">▲ +8 flagged</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:34%"></div></div></div>
+      </div>
+      <div class="kpi-card blue" data-kpi="avgtenure2">
+        <div class="kpi-icon">⏱️</div>
+        <div class="kpi-label">Avg Time-to-Leave</div>
+        <div class="kpi-value num-anim" id="kpi-avgtenure2">2.1<span style="font-size:16px">yr</span></div>
+        <div class="kpi-delta down">▼ −0.3yr</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:42%"></div></div></div>
+      </div>
+      <div class="kpi-card green" data-kpi="engscore">
+        <div class="kpi-icon">💚</div>
+        <div class="kpi-label">Engagement Score</div>
+        <div class="kpi-value num-anim" id="kpi-engscore">72<span style="font-size:16px">%</span></div>
+        <div class="kpi-delta up">▲ +4%</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:72%"></div></div></div>
+      </div>
+    </div>
+
+    <div class="grid-70-30">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Attrition Trend by Month</span><span class="card-badge badge-red">12 Months</span></div>
+        <div class="chart-wrap"><canvas id="attrTrend"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🚨 At-Risk Employees</span><span class="card-badge badge-red">Priority</span></div>
+        <div id="riskList"></div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Attrition by Reason</span><span class="card-badge badge-amber">Categorized</span></div>
+        <div class="chart-wrap"><canvas id="attrReason"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Retention by Tenure Band</span><span class="card-badge badge-green">Analysis</span></div>
+        <div class="chart-wrap"><canvas id="tenureRetention"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Department-wise Attrition Rate</span><span class="card-badge badge-blue">Comparative</span></div>
+      <div class="chart-wrap"><canvas id="deptAttrition"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB 4: RECRUITMENT ══════════ -->
+  <div class="tab-panel" id="tab-recruitment">
+    <div class="kpi-grid">
+      <div class="kpi-card blue" data-kpi="appcount">
+        <div class="kpi-icon">📝</div>
+        <div class="kpi-label">Total Applications</div>
+        <div class="kpi-value num-anim" id="kpi-appcount">3,842</div>
+        <div class="kpi-delta up">▲ +342 this period</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:68%"></div></div></div>
+      </div>
+      <div class="kpi-card green" data-kpi="hires">
+        <div class="kpi-icon">🎉</div>
+        <div class="kpi-label">Hires Made</div>
+        <div class="kpi-value num-anim" id="kpi-hires">127</div>
+        <div class="kpi-delta up">▲ +24</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:63%"></div></div></div>
+      </div>
+      <div class="kpi-card amber" data-kpi="timetohire">
+        <div class="kpi-icon">⏳</div>
+        <div class="kpi-label">Avg Time-to-Hire</div>
+        <div class="kpi-value num-anim" id="kpi-timetohire">18<span style="font-size:16px">d</span></div>
+        <div class="kpi-delta up">▼ −3 days faster</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:72%"></div></div></div>
+      </div>
+      <div class="kpi-card purple" data-kpi="offaccept">
+        <div class="kpi-icon">✍️</div>
+        <div class="kpi-label">Offer Accept Rate</div>
+        <div class="kpi-value num-anim" id="kpi-offaccept">84<span style="font-size:16px">%</span></div>
+        <div class="kpi-delta up">▲ +6%</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:84%"></div></div></div>
+      </div>
+      <div class="kpi-card red" data-kpi="costperhire">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-label">Cost per Hire</div>
+        <div class="kpi-value num-anim" id="kpi-costperhire">$4.2<span style="font-size:16px">k</span></div>
+        <div class="kpi-delta up">▼ −$0.3k</div>
+        <div class="kpi-progress-wrap"><div class="kpi-progress-bar"><div class="kpi-progress-fill" style="width:58%"></div></div></div>
+      </div>
+    </div>
+
+    <div class="grid-60-40">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Hiring Funnel</span><span class="card-badge badge-blue">Conversion Analysis</span></div>
+        <div id="hiringFunnel" style="padding:8px 0"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Applications by Source</span><span class="card-badge badge-purple">Channel Mix</span></div>
+        <div class="chart-wrap short"><canvas id="sourcePie"></canvas></div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Hiring Trend</span><span class="card-badge badge-green">Monthly</span></div>
+        <div class="chart-wrap"><canvas id="hiringTrend"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Open Roles by Department</span><span class="card-badge badge-amber">Priority Queue</span></div>
+        <div class="chart-wrap"><canvas id="openRolesChart"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Recent Candidates Pipeline</span><span class="card-badge badge-blue">Active</span></div>
+      <table class="mini-table">
+        <thead><tr><th>Candidate</th><th>Role</th><th>Dept</th><th>Stage</th><th>Score</th></tr></thead>
+        <tbody id="candidateBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB 5: GAMIFICATION HUB ══════════ -->
+  <div class="tab-panel" id="tab-gamification">
+    <div class="level-banner">
+      <div style="position:relative;z-index:1">
+        <div class="level-title">🏆 Company Achievement Level</div>
+        <div class="level-name">Diamond League — Season 4</div>
+        <div class="level-xp-wrap">
+          <div class="level-xp-bar"><div class="level-xp-fill" id="companyXp" style="width:0%"></div></div>
+          <div class="level-xp-label" id="companyXpLabel">74,200 / 100,000 XP</div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:20px;flex-wrap:wrap">
+          <div style="font-size:12px;opacity:.8">🔥 <strong>42-day</strong> goal streak</div>
+          <div style="font-size:12px;opacity:.8">⭐ <strong>198</strong> Top Performers</div>
+          <div style="font-size:12px;opacity:.8">🎖️ <strong>524</strong> Badges Earned</div>
+          <div style="font-size:12px;opacity:.8">📈 <strong>87%</strong> Challenge Completion</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-70-30">
+      <div>
+        <div class="card gap-bottom">
+          <div class="card-header"><span class="card-title">🎮 Active Challenges</span><span class="card-badge badge-purple">12 Running</span></div>
+          <div id="challengeList"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">XP Distribution by Department</span><span class="card-badge badge-blue">Team XP</span></div>
+          <div class="chart-wrap"><canvas id="xpChart"></canvas></div>
+        </div>
+      </div>
+      <div>
+        <div class="card gap-bottom">
+          <div class="card-header"><span class="card-title">🏅 Achievement Badges</span><span class="card-badge badge-amber">Unlockable</span></div>
+          <div class="badge-grid" id="badgeGrid"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">🥇 XP Leaderboard</span><span class="card-badge badge-purple">Top 5</span></div>
+          <div id="xpLeaderboard"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-8">
+      <div class="card-header"><span class="card-title">Top Performers — Gamification Profiles</span><span class="card-badge badge-green">Detailed</span></div>
+      <div class="emp-grid" id="gamEmpGrid"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent">
+    <div class="modal-header">
+      <div id="modalTitle"><h3 style="font-size:18px"></h3></div>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ════════════════════════════════════════════════
+// DATA LAYER
+// ════════════════════════════════════════════════
+const DEPTS = ['Sales','Engineering','Marketing','HR','Finance','Operations','Product'];
+const LOCATIONS = ['New York','San Francisco','London','Bangalore','Dubai'];
+const LEVELS = ['Junior','Mid','Senior','Lead','Principal','Manager','Director','VP'];
+const COLORS = ['#2563eb','#7c3aed','#059669','#dc2626','#d97706','#0891b2','#be185d'];
+const COLORS_LIGHT = ['#dbeafe','#ede9fe','#dcfce7','#fee2e2','#fef3c7','#cffafe','#fce7f3'];
+const AVATARCOLORS = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#6366f1','#ec4899','#14b8a6','#8b5cf6','#f59e0b'];
+
+function rnd(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function rndF(min,max,dec=1){return parseFloat((Math.random()*(max-min)+min).toFixed(dec));}
+function pick(arr){return arr[rnd(0,arr.length-1)];}
+
+const FIRST_NAMES=['Alex','Jordan','Sam','Taylor','Morgan','Casey','Riley','Jamie','Avery','Quinn','Blake','Drew','Peyton','Skyler','Charlie','Reese','Finley','Emery','Rowan','Logan','Priya','Arjun','Nina','Liam','Sophia','Ethan','Mia','Noah','Emma','Lucas','Olivia','Aisha','Chen','Riya','Tanaka','Fatima','Carlos','Zoe','Amara','Kenji'];
+const LAST_NAMES=['Smith','Johnson','Williams','Brown','Jones','Miller','Davis','Wilson','Moore','Taylor','Anderson','Thomas','Jackson','White','Harris','Martin','Garcia','Martinez','Robinson','Clark','Lewis','Lee','Walker','Hall','Allen','Young','King','Wright','Scott','Torres','Patel','Sharma','Nakamura','Ibrahim','Santos','Kim','Müller','Okafor','Singh'];
+
+function genName(){return pick(FIRST_NAMES)+' '+pick(LAST_NAMES);}
+
+const employees = Array.from({length:200},(_,i)=>{
+  const dept = DEPTS[i%DEPTS.length];
+  const score = rndF(1,5,1);
+  const xp = rnd(500,15000);
+  return {
+    id:i+1, name:genName(), dept, loc:pick(LOCATIONS),
+    level:pick(LEVELS), score, xp,
+    tenure: rndF(0.5,8,1), age:rnd(22,55),
+    goalComp:rnd(40,100), risk:score<2.5?'High':score<3.5?'Medium':'Low',
+    status: rnd(0,10)>1?'Active':'Leave',
+    manager: genName(), salary: rnd(60,180)*1000,
+    color: AVATARCOLORS[i%AVATARCOLORS.length]
+  };
+});
+
+const DEPT_COUNTS = {Sales:165,Engineering:210,Marketing:120,HR:75,Finance:95,Operations:185,Product:150};
+const DEPT_ATTRITION = {Sales:14.2,Engineering:9.8,Marketing:13.1,HR:8.4,Finance:7.6,Operations:12.7,Product:10.3};
+
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+let state = {
+  tab:'workforce', mode:'productivity',
+  dept:'all', location:'all', time:'month',
+  deptChip:'all'
+};
+
+const charts = {};
+
+// ════════════════════════════════════════════════
+// INSIGHTS
+// ════════════════════════════════════════════════
+const insights = {
+  all:{productivity:['Productivity Index up 12% — strongest quarter in 2 years','Team collaboration scores hit a new high of 84%','Remote teams show 18% higher output vs office-only'],
+    performance:['Sales team leads in KPI achievement — 94% goal completion rate','Engineering dept tops performance ratings at 4.4 avg score','198 employees promoted to Top Performer status this period'],
+    kpi:['Company-wide KPI completion at 87% — surpassing 80% target','Finance team has perfect KPI compliance for 3rd consecutive month','Operations team improved KPI by 22 pts']},
+  sales:{productivity:['Sales team generated 127% of quota target this period','Cold outreach productivity doubled after CRM upgrade'],
+    performance:['Sales leads in revenue-per-rep at $1.2M average','Top rep exceeded quota by 312% — highest in company history'],
+    kpi:['Sales KPI health: 94/100 — company benchmark setter']},
+  engineering:{productivity:['Sprint velocity increased 34% after Agile process overhaul','Bug resolution time dropped to 4.2 hours avg'],
+    performance:['Engineering 4.4 avg score — highest department rating','42 engineers promoted to Senior+ this quarter'],
+    kpi:['On-time delivery KPI: 91% — well above 80% threshold']},
+};
+
+function getInsight(){
+  const dept = state.dept==='all'?'all':(insights[state.dept]?state.dept:'all');
+  const modeInsights = insights[dept]?.[state.mode] || insights.all[state.mode];
+  return pick(modeInsights);
+}
+
+function updateInsight(){
+  const el = document.getElementById('insightText');
+  el.style.opacity=0;
+  setTimeout(()=>{el.textContent=getInsight();el.style.transition='opacity .4s';el.style.opacity=1;},300);
+}
+
+// ════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════
+function toast(msg,emoji='✦'){
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className='toast';
+  t.innerHTML=`<span>${emoji}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(()=>{t.classList.add('removing');setTimeout(()=>t.remove(),300);},3500);
+}
+
+// ════════════════════════════════════════════════
+// ANIMATED NUMBER
+// ════════════════════════════════════════════════
+function animateNum(el, from, to, duration=600, suffix=''){
+  const start=performance.now();
+  function step(ts){
+    const p=Math.min((ts-start)/duration,1);
+    const ease=1-Math.pow(1-p,3);
+    const val=from+(to-from)*ease;
+    el.dataset.numVal=val;
+    // format
+    let s;
+    if(to>=1000){s=Math.round(val).toLocaleString();}
+    else if(Number.isInteger(to)){s=Math.round(val);}
+    else{s=val.toFixed(1);}
+    el.textContent=s+suffix;
+    if(p<1)requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ════════════════════════════════════════════════
+// CHART HELPERS
+// ════════════════════════════════════════════════
+const CHART_DEFAULTS = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(26,26,24,.9)',titleFont:{family:'Syne',size:12},bodyFont:{family:'DM Sans',size:11},padding:10,cornerRadius:8}},
+  animation:{duration:600,easing:'easeInOutCubic'}
+};
+
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+function makeChart(id,config){
+  destroyChart(id);
+  const ctx=document.getElementById(id);
+  if(!ctx)return;
+  charts[id]=new Chart(ctx,{...config,options:{...CHART_DEFAULTS,...config.options,plugins:{...CHART_DEFAULTS.plugins,...(config.options?.plugins||{})}}});
+  return charts[id];
+}
+
+// ════════════════════════════════════════════════
+// DEPT BAR CHART
+// ════════════════════════════════════════════════
+function buildDeptBar(){
+  const multiplier = state.dept==='all'?1:(state.time==='week'?.25:state.time==='month'?1:3);
+  const depts=Object.keys(DEPT_COUNTS);
+  const vals=depts.map(d=>Math.round(DEPT_COUNTS[d]*(state.dept==='all'||state.dept===d.toLowerCase()?1:.15)*multiplier));
+  makeChart('deptBarChart',{type:'bar',data:{labels:depts,datasets:[{data:vals,backgroundColor:COLORS,borderRadius:8,borderSkipped:false}]},options:{...CHART_DEFAULTS,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:11}}},y:{grid:{color:'#f0f0ed'},ticks:{font:{family:'DM Sans',size:10}}}}}});
+}
+
+// ════════════════════════════════════════════════
+// EMP TYPE PIE
+// ════════════════════════════════════════════════
+function buildEmpTypePie(){
+  const vals=[580,280,100,40];
+  const labels=['Full-Time','Contract','Part-Time','Intern'];
+  makeChart('empTypePie',{type:'doughnut',data:{labels,datasets:[{data:vals,backgroundColor:COLORS.slice(0,4),borderWidth:0,hoverOffset:6}]},options:{...CHART_DEFAULTS,cutout:'65%',plugins:{legend:{display:false}}}});
+  const leg=document.getElementById('empTypeLegend');
+  leg.innerHTML=labels.map((l,i)=>`<div class="pie-legend-item"><div class="pie-dot" style="background:${COLORS[i]}"></div><span class="pie-legend-label">${l}</span><span class="pie-legend-val">${vals[i]}</span></div>`).join('');
+}
+
+// ════════════════════════════════════════════════
+// HEADCOUNT TREND
+// ════════════════════════════════════════════════
+function buildHeadcountTrend(){
+  const months=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+  const base=900; const vals=months.map((_,i)=>base+i*8+rnd(-5,15));
+  makeChart('headcountTrend',{type:'line',data:{labels:months,datasets:[{data:vals,borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.08)',tension:.4,fill:true,pointRadius:3,pointBackgroundColor:'#2563eb'}]},options:{...CHART_DEFAULTS,scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:10}}},y:{grid:{color:'#f0f0ed'},ticks:{font:{family:'DM Sans',size:10}}}}}});
+}
+
+// ════════════════════════════════════════════════
+// AGE CHART
+// ════════════════════════════════════════════════
+function buildAgeChart(){
+  const labels=['22–27','28–32','33–37','38–42','43–47','48–55'];
+  const vals=[180,280,220,160,100,60];
+  makeChart('ageChart',{type:'bar',data:{labels,datasets:[{label:'Employees',data:vals,backgroundColor:'rgba(124,58,237,.7)',borderRadius:6}]},options:{...CHART_DEFAULTS,scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:10}}},y:{grid:{color:'#f0f0ed'},ticks:{font:{family:'DM Sans',size:10}}}}}});
+}
+
+// ════════════════════════════════════════════════
+// PERF RADAR
+// ════════════════════════════════════════════════
+function buildPerfRadar(){
+  const depts=DEPTS;
+  const prod=depts.map(()=>rnd(60,95));
+  const perf=depts.map(()=>rnd(55,90));
+  makeChart('perfRadar',{type:'radar',data:{labels:depts,datasets:[{label:'Performance',data:perf,borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.12)',pointBackgroundColor:'#2563eb'},{label:'Goal Completion',data:prod,borderColor:'#7c3aed',backgroundColor:'rgba(124,58,237,.1)',pointBackgroundColor:'#7c3aed'}]},options:{...CHART_DEFAULTS,plugins:{legend:{display:true,position:'bottom',labels:{font:{family:'DM Sans',size:11},boxWidth:12}}},scales:{r:{grid:{color:'#f0f0ed'},ticks:{display:false},pointLabels:{font:{family:'DM Sans',size:11}}}}}});
+}
+
+// ════════════════════════════════════════════════
+// GOAL TREND
+// ════════════════════════════════════════════════
+function buildGoalTrend(){
+  const months=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+  const vals=months.map((_,i)=>65+i*2+rnd(-3,5));
+  makeChart('goalTrend',{type:'line',data:{labels:months,datasets:[{data:vals,borderColor:'#059669',backgroundColor:'rgba(5,150,105,.08)',tension:.4,fill:true,pointRadius:3,pointBackgroundColor:'#059669'}]},options:{...CHART_DEFAULTS,scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:10}}},y:{min:50,max:100,grid:{color:'#f0f0ed'},ticks:{font:{family:'DM Sans',size:10},callback:v=>v+'%'}}}}});
+}
+
+// ════════════════════════════════════════════════
+// PERF DIST
+// ════════════════════════════════════════════════
+function buildPerfDist(){
+  const labels=['1.0–1.9','2.0–2.9','3.0–3.5','3.6–4.0','4.1–4.5','4.6–5.0'];
+  const vals=[18,25,110,320,380,147];
+  makeChart('perfDist',{type:'bar',data:{labels,datasets:[{data:vals,backgroundColor:['#dc2626','#ef4444','#f97316','#eab308','#22c55e','#16a34a'],borderRadius:6}]},options:{...CHART_DEFAULTS,scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:10}}},y:{grid:{color:'#f0f0ed'},ticks:{font:{family:'DM Sans',size:10}}}}}});
+}
+
+// ════════════════════════════════════════════════
+// ATTRITION TREND
+// ════════════════════════════════════════════════
+function buildAttrTrend(){
+  const months=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+  const left=months.map(()=>rnd(6,18));
+  const joined=months.map(()=>rnd(10,28));
+  makeChart('attrTrend',{type:'line',data:{labels:months,datasets:[{label:'Leavers',data:left,borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,.08)',tension:.4,fill:true,pointRadius:3},{label:'New Hires',data:joined,borderColor:'#059669',backgroundColor:'rgba(5,150,105,.05)',tension:.4,fill:true,pointRadius:3}]},options:{...CHART_DEFAULTS,plugins:{legend:{display:true,position:'bottom',labels:{font:{family:'DM Sans',size:11},boxWidth:12}}},scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:10}}},y:{grid:{color:'#f0f0ed'},ticks:{font:{family:'DM Sans',size:10}}}}}});
+}
+
+// ════════════════════════════════════════════════
+// ATTRITION REASON
+// ════════════════════════════════════════════════
+function buildAttrReason(){
+  const labels=['Better Offer','Work-Life','Career Growth','Relocation','Manager Issues','Culture Fit','Compensation'];
+  const vals=[34,22,18,10,8,5,3];
+  makeChart('attrReason',{type:'bar',data:{labels,datasets:[{data:vals,backgroundColor:'rgba(220,38,38,.7)',borderRadius:6}]},options:{...CHART_DEFAULTS,indexAxis:'y',scales:{x:{grid:{color:'#f0f0ed'},ticks:{font:{family:'DM Sans',size:10},callback:v=>v+'%'}},y:{grid:{display:false},ticks:{font:{family:'DM Sans',size:10}}}}}});
+}
+
+// ════════════════════════════════════════════════
+// TENURE RETENTION
+// ════════════════════════════════════════════════
+function buildTenureRetention(){
+  const labels=['<6m','6m–1y','1–2y','2–3y','3–5y','5–8y','8y+'];
+  const vals=[58,72,81,88,93,96,98];
+  makeChart('tenureRetention',{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#059669',backgroundColor:'rgba(5,150,105,.08)',tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#059669'}]},options:{...CHART_DEFAULTS,scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:10}}},y:{min:40,max:100,grid:{color:'#f0f0ed'},ticks:{font:{family:'DM Sans',size:10},callback:v=>v+'%'}}}}});
+}
+
+// ════════════════════════════════════════════════
+// DEPT ATTRITION
+// ════════════════════════════════════════════════
+function buildDeptAttrition(){
+  const depts=Object.keys(DEPT_ATTRITION);
+  const vals=depts.map(d=>DEPT_ATTRITION[d]);
+  makeChart('deptAttrition',{type:'bar',data:{labels:depts,datasets:[{data:vals,backgroundColor:vals.map(v=>v>12?'rgba(220,38,38,.7)':v>10?'rgba(217,119,6,.7)':'rgba(5,150,105,.7)'),borderRadius:6}]},options:{...CHART_DEFAULTS,scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:11}}},y:{grid:{color:'#f0f0ed'},ticks:{font:{family:'DM Sans',size:10},callback:v=>v+'%'}}}}});
+}
+
+// ════════════════════════════════════════════════
+// HIRING TREND
+// ════════════════════════════════════════════════
+function buildHiringTrend(){
+  const months=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+  const apps=months.map(()=>rnd(250,450));
+  const hires=months.map(()=>rnd(8,22));
+  makeChart('hiringTrend',{type:'bar',data:{labels:months,datasets:[{label:'Applications',data:apps,backgroundColor:'rgba(37,99,235,.5)',borderRadius:4,yAxisID:'y'},{label:'Hires',data:hires,backgroundColor:'rgba(5,150,105,.8)',borderRadius:4,type:'line',yAxisID:'y1',tension:.4,pointRadius:3}]},options:{...CHART_DEFAULTS,plugins:{legend:{display:true,position:'bottom',labels:{font:{family:'DM Sans',size:11},boxWidth:12}}},scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:10}}},y:{grid:{color:'#f0f0ed'},ticks:{font:{family:'DM Sans',size:10}},title:{display:true,text:'Apps',font:{size:10}}},y1:{position:'right',grid:{display:false},ticks:{font:{family:'DM Sans',size:10}},title:{display:true,text:'Hires',font:{size:10}}}}}});
+}
+
+// ════════════════════════════════════════════════
+// SOURCE PIE
+// ════════════════════════════════════════════════
+function buildSourcePie(){
+  const labels=['LinkedIn','Referral','Job Boards','Career Site','Agency','Other'];
+  const vals=[38,24,18,12,5,3];
+  makeChart('sourcePie',{type:'doughnut',data:{labels,datasets:[{data:vals,backgroundColor:COLORS,borderWidth:0,hoverOffset:6}]},options:{...CHART_DEFAULTS,cutout:'60%',plugins:{legend:{display:true,position:'right',labels:{font:{family:'DM Sans',size:11},boxWidth:10,padding:8}}}}});
+}
+
+// ════════════════════════════════════════════════
+// OPEN ROLES
+// ════════════════════════════════════════════════
+function buildOpenRoles(){
+  const vals=DEPTS.map(()=>rnd(3,14));
+  makeChart('openRolesChart',{type:'bar',data:{labels:DEPTS,datasets:[{data:vals,backgroundColor:'rgba(124,58,237,.7)',borderRadius:6}]},options:{...CHART_DEFAULTS,scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:10}}},y:{grid:{color:'#f0f0ed'},ticks:{font:{family:'DM Sans',size:10}}}}}});
+}
+
+// ════════════════════════════════════════════════
+// XP CHART
+// ════════════════════════════════════════════════
+function buildXpChart(){
+  const vals=DEPTS.map(()=>rnd(20000,95000));
+  makeChart('xpChart',{type:'bar',data:{labels:DEPTS,datasets:[{data:vals,backgroundColor:COLORS.map(c=>c+'cc'),borderRadius:6}]},options:{...CHART_DEFAULTS,scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:10}}},y:{grid:{color:'#f0f0ed'},ticks:{font:{family:'DM Sans',size:10},callback:v=>(v/1000).toFixed(0)+'k'}}}}});
+}
+
+// ════════════════════════════════════════════════
+// LEADERBOARD
+// ════════════════════════════════════════════════
+function buildLeaderboard(){
+  const sorted=[...employees].sort((a,b)=>b.score-a.score).slice(0,8);
+  const el=document.getElementById('leaderboard');
+  el.innerHTML=sorted.map((e,i)=>{
+    const rClass=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const pct=Math.round((e.score/5)*100);
+    return `<div class="lb-item" onclick="openEmployee(${e.id})">
+      <div class="lb-rank ${rClass}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+      <div class="lb-av" style="background:${e.color}">${e.name.split(' ').map(n=>n[0]).join('')}</div>
+      <div class="lb-info"><div class="lb-name">${e.name}</div><div class="lb-dept">${e.dept}</div></div>
+      <div class="lb-bar-wrap"><div class="lb-bar"><div class="lb-bar-fill" style="width:${pct}%;background:${COLORS[i%COLORS.length]}"></div></div></div>
+      <div class="lb-score">${e.score}</div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════
+// LOW PERFORMERS TABLE
+// ════════════════════════════════════════════════
+function buildLowPerfTable(){
+  const low=employees.filter(e=>e.score<2.8).slice(0,10);
+  document.getElementById('lowPerfBody').innerHTML=low.map(e=>`<tr onclick="openEmployee(${e.id})">
+    <td><div style="display:flex;align-items:center;gap:8px"><div class="s-avatar" style="background:${e.color};width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff">${e.name.split(' ').map(n=>n[0]).join('')}</div>${e.name}</div></td>
+    <td>${e.dept}</td>
+    <td><span style="color:${e.score<2?'var(--accent4)':'var(--accent5)'};font-weight:700">${e.score}</span></td>
+    <td><span class="card-badge ${e.score<2?'badge-red':'badge-amber'}">${e.score<2?'Critical':'At Risk'}</span></td>
+    <td style="color:var(--text2);font-size:12px">${e.manager}</td>
+  </tr>`).join('');
+  document.getElementById('lowPerfCount').textContent=employees.filter(e=>e.score<2.8).length+' employees';
+}
+
+// ════════════════════════════════════════════════
+// AT-RISK LIST
+// ════════════════════════════════════════════════
+function buildRiskList(){
+  const risky=employees.filter(e=>e.risk!=='Low').slice(0,8);
+  document.getElementById('riskList').innerHTML=risky.map(e=>`<div class="risk-item" onclick="openEmployee(${e.id})">
+    <div class="risk-dot ${e.risk==='High'?'risk-high':'risk-med'}"></div>
+    <div class="risk-name">${e.name} <span style="color:var(--text2);font-size:11px">· ${e.dept}</span></div>
+    <span class="risk-label ${e.risk==='High'?'rl-high':'rl-med'}">${e.risk}</span>
+  </div>`).join('');
+}
+
+// ════════════════════════════════════════════════
+// HIRING FUNNEL
+// ════════════════════════════════════════════════
+function buildHiringFunnel(){
+  const stages=[{label:'Applied',n:3842,color:'#2563eb'},{label:'Screened',n:1284,color:'#7c3aed'},{label:'Interviewed',n:412,color:'#d97706'},{label:'Offered',n:151,color:'#059669'},{label:'Hired',n:127,color:'#16a34a'}];
+  const max=stages[0].n;
+  document.getElementById('hiringFunnel').innerHTML=stages.map(s=>`<div class="funnel-item">
+    <div class="funnel-label"><span>${s.label}</span><span>${s.n.toLocaleString()} (${Math.round(s.n/max*100)}%)</span></div>
+    <div class="funnel-bar" style="width:${Math.round(s.n/max*100)}%;background:${s.color}">${s.n.toLocaleString()}</div>
+  </div>`).join('');
+}
+
+// ════════════════════════════════════════════════
+// CANDIDATE TABLE
+// ════════════════════════════════════════════════
+const STAGES=['Applied','Phone Screen','Technical','Final Round','Offer Sent','Negotiation'];
+const STAGE_COLORS=['badge-blue','badge-purple','badge-amber','badge-amber','badge-green','badge-red'];
+function buildCandidateTable(){
+  const cands=Array.from({length:12},(_,i)=>({name:genName(),role:pick(['Sr. Engineer','Product Mgr','Data Analyst','Sales Lead','UX Designer','DevOps Eng','Marketing Mgr']),dept:pick(DEPTS),stage:STAGES[i%STAGES.length],score:rnd(65,98)}));
+  document.getElementById('candidateBody').innerHTML=cands.map(c=>`<tr>
+    <td>${c.name}</td><td>${c.role}</td><td>${c.dept}</td>
+    <td><span class="card-badge ${STAGE_COLORS[STAGES.indexOf(c.stage)]}">${c.stage}</span></td>
+    <td><strong>${c.score}</strong>/100</td>
+  </tr>`).join('');
+}
+
+// ════════════════════════════════════════════════
+// EMPLOYEE GRID
+// ════════════════════════════════════════════════
+function buildEmpGrid(containerId,emps){
+  const el=document.getElementById(containerId);
+  if(!el)return;
+  const list=(emps||employees.slice(0,12));
+  el.innerHTML=list.map(e=>`<div class="emp-card" onclick="openEmployee(${e.id})">
+    <div class="emp-av-lg" style="background:${e.color}">${e.name.split(' ').map(n=>n[0]).join('')}</div>
+    <div class="emp-name">${e.name}</div>
+    <div class="emp-role">${e.level} · ${e.dept}</div>
+    <div class="xp-bar-wrap">
+      <div class="xp-bar-label"><span>XP</span><span>${e.xp.toLocaleString()}</span></div>
+      <div class="xp-bar"><div class="xp-fill" style="width:${Math.min(100,e.xp/150)}%;background:${e.color}"></div></div>
+    </div>
+    <div class="emp-stat mt-8"><span>Score</span><span style="color:${e.score>=4?'var(--accent3)':e.score<3?'var(--accent4)':'var(--accent5)'}">${e.score}★</span></div>
+  </div>`).join('');
+}
+
+// ════════════════════════════════════════════════
+// GAMIFICATION HUB
+// ════════════════════════════════════════════════
+const CHALLENGES=[
+  {icon:'🎯',name:'Goal Crusher',desc:'Complete 5 goals this week',prog:80,xp:'+500 XP',color:'#dbeafe'},
+  {icon:'💬',name:'Team Synergy',desc:'Collaborate on 3 cross-team projects',prog:60,xp:'+300 XP',color:'#ede9fe'},
+  {icon:'📊',name:'KPI Maestro',desc:'Hit all KPIs for 30 consecutive days',prog:43,xp:'+1000 XP',color:'#fef3c7'},
+  {icon:'🚀',name:'Speed Sprint',desc:'Deliver a project 2 days early',prog:100,xp:'+250 XP',color:'#dcfce7'},
+  {icon:'🌟',name:'Mentorship Star',desc:'Mentor a junior team member',prog:25,xp:'+400 XP',color:'#fce7f3'},
+  {icon:'📚',name:'Learning Streak',desc:'Complete 5 training modules',prog:70,xp:'+200 XP',color:'#cffafe'},
+];
+
+const BADGES=[
+  {icon:'🏆',name:'Champion',earned:true},{icon:'🔥',name:'On Fire',earned:true},{icon:'⚡',name:'Fast Track',earned:true},
+  {icon:'💎',name:'Diamond',earned:false},{icon:'🎖️',name:'Elite',earned:true},{icon:'🌟',name:'Star',earned:true},
+  {icon:'🚀',name:'Rocket',earned:false},{icon:'🎯',name:'Precise',earned:true},{icon:'💡',name:'Innovator',earned:false},
+  {icon:'🤝',name:'Team Player',earned:true},{icon:'📈',name:'Grower',earned:true},{icon:'🌈',name:'Diverse',earned:false},
+];
+
+function buildGamHub(){
+  // Level XP
+  setTimeout(()=>{document.getElementById('companyXp').style.width='74.2%';},200);
+
+  // Challenges
+  document.getElementById('challengeList').innerHTML=CHALLENGES.map(c=>`<div class="challenge-item">
+    <div class="challenge-icon" style="background:${c.color}">${c.icon}</div>
+    <div class="challenge-info">
+      <div class="challenge-name">${c.name}</div>
+      <div class="challenge-desc">${c.desc}</div>
+      <div class="challenge-prog"><div class="challenge-bar"><div class="challenge-fill" style="width:${c.prog}%"></div></div></div>
+    </div>
+    <div class="challenge-xp">${c.xp}</div>
+  </div>`).join('');
+
+  // Badges
+  document.getElementById('badgeGrid').innerHTML=BADGES.map(b=>`<div class="badge-item ${b.earned?'earned':''}" title="${b.name}">
+    ${b.icon}<span>${b.name}</span>
+  </div>`).join('');
+
+  // XP Leaderboard
+  const xpTop=[...employees].sort((a,b)=>b.xp-a.xp).slice(0,5);
+  document.getElementById('xpLeaderboard').innerHTML=xpTop.map((e,i)=>`<div class="lb-item" onclick="openEmployee(${e.id})">
+    <div class="lb-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+    <div class="lb-av" style="background:${e.color}">${e.name.split(' ').map(n=>n[0]).join('')}</div>
+    <div class="lb-info"><div class="lb-name">${e.name}</div><div class="lb-dept">${e.dept}</div></div>
+    <div class="lb-score" style="color:${COLORS[i%COLORS.length]}">${e.xp.toLocaleString()} XP</div>
+  </div>`).join('');
+
+  buildEmpGrid('gamEmpGrid',[...employees].sort((a,b)=>b.xp-a.xp).slice(0,8));
+}
+
+// ════════════════════════════════════════════════
+// OPEN EMPLOYEE MODAL
+// ════════════════════════════════════════════════
+function openEmployee(id){
+  const e=employees.find(x=>x.id===id);
+  if(!e)return;
+  const initials=e.name.split(' ').map(n=>n[0]).join('');
+  document.getElementById('modalTitle').innerHTML=`<h3 style="font-size:18px">Employee Profile</h3>`;
+  document.getElementById('modalBody').innerHTML=`
+    <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">
+      <div style="text-align:center">
+        <div style="width:72px;height:72px;border-radius:50%;background:${e.color};display:grid;place-items:center;font-size:22px;font-weight:800;color:#fff;margin:0 auto 10px">${initials}</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px">${e.name}</div>
+        <div style="font-size:12px;color:var(--text2)">${e.level} · ${e.dept}</div>
+        <div style="margin-top:8px"><span class="card-badge ${e.risk==='High'?'badge-red':e.risk==='Medium'?'badge-amber':'badge-green'}">${e.risk} Risk</span></div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div class="stat-pair" style="margin-bottom:12px">
+          <div class="stat-mini"><div class="stat-mini-val">${e.score}★</div><div class="stat-mini-label">Perf Score</div></div>
+          <div class="stat-mini"><div class="stat-mini-val">${e.goalComp}%</div><div class="stat-mini-label">Goal Comp.</div></div>
+          <div class="stat-mini"><div class="stat-mini-val">${e.tenure}y</div><div class="stat-mini-label">Tenure</div></div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div class="xp-bar-label"><span style="font-size:12px;font-weight:700">XP Progress</span><span style="font-size:12px;color:var(--text2)">${e.xp.toLocaleString()} XP</span></div>
+          <div class="xp-bar" style="height:10px;margin-top:4px"><div class="xp-fill" style="width:${Math.min(100,e.xp/150)}%;background:${e.color}"></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+          <div><span style="color:var(--text2)">Location:</span> <strong>${e.loc}</strong></div>
+          <div><span style="color:var(--text2)">Age:</span> <strong>${e.age}</strong></div>
+          <div><span style="color:var(--text2)">Manager:</span> <strong>${e.manager.split(' ')[0]} ${e.manager.split(' ')[1][0]}.</strong></div>
+          <div><span style="color:var(--text2)">Status:</span> <strong>${e.status}</strong></div>
+          <div><span style="color:var(--text2)">Salary:</span> <strong>$${(e.salary/1000).toFixed(0)}k</strong></div>
+          <div><span style="color:var(--text2)">Dept:</span> <strong>${e.dept}</strong></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <div class="section-title">Recent Badges</div>
+      <div class="badge-grid">${BADGES.filter((_,i)=>i<4&&(BADGES[i].earned||e.xp>5000)).map(b=>`<div class="badge-item ${b.earned?'earned':''}">${b.icon}<span>${b.name}</span></div>`).join('')}</div>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+// ════════════════════════════════════════════════
+// KPI MODAL
+// ════════════════════════════════════════════════
+document.querySelectorAll('.kpi-card').forEach(card=>{
+  card.addEventListener('click',()=>{
+    const kpi=card.dataset.kpi;
+    const titles={headcount:'Total Headcount Breakdown',active:'Active Employee Details',avgtenure:'Average Tenure Analysis',diversity:'Diversity Score Breakdown',openroles:'Open Roles by Dept',avgperf:'Performance Score Details',goalcomp:'Goal Completion Analysis',productindex:'Productivity Index Details',lowperf:'Low Performer List',topperf:'Top Performer List',attrrate:'Attrition Rate Analysis',retrate:'Retention Rate Details',atrisk:'At-Risk Employee List',avgtenure2:'Time-to-Leave Analysis',engscore:'Engagement Score Details',appcount:'Application Analytics',hires:'Hiring Details',timetohire:'Time-to-Hire Breakdown',offaccept:'Offer Acceptance Analysis',costperhire:'Cost Per Hire Breakdown'};
+    document.getElementById('modalTitle').innerHTML=`<h3 style="font-size:18px">${titles[kpi]||'KPI Details'}</h3>`;
+    document.getElementById('modalBody').innerHTML=`
+      <div style="text-align:center;padding:20px 0">
+        <div style="font-family:'Syne',sans-serif;font-size:48px;font-weight:800;margin-bottom:8px">${card.querySelector('.kpi-value').textContent}</div>
+        <div style="font-size:14px;color:var(--text2)">${card.querySelector('.kpi-label').textContent}</div>
+        <div style="margin-top:16px">${card.querySelector('.kpi-delta').outerHTML}</div>
+        <div style="margin-top:24px;text-align:left;background:var(--surface2);border-radius:12px;padding:16px">
+          <div style="font-size:13px;color:var(--text2);line-height:1.7">
+            This metric reflects current ${state.mode} mode data filtered by 
+            <strong>${state.dept==='all'?'All Departments':state.dept}</strong> 
+            over the <strong>last ${state.time}</strong>. Click employees below for individual breakdowns.
+          </div>
+        </div>
+      </div>
+    `;
+    document.getElementById('modalOverlay').classList.add('open');
+  });
+});
+
+// ════════════════════════════════════════════════
+// SEARCH
+// ════════════════════════════════════════════════
+document.getElementById('searchInput').addEventListener('input',function(){
+  const q=this.value.trim().toLowerCase();
+  const res=document.getElementById('searchResults');
+  if(!q){res.classList.remove('open');return;}
+  const matches=employees.filter(e=>e.name.toLowerCase().includes(q)||e.dept.toLowerCase().includes(q)).slice(0,8);
+  res.innerHTML=matches.map(e=>`<div class="search-item" onclick="openEmployee(${e.id});document.getElementById('searchResults').classList.remove('open');document.getElementById('searchInput').value=''">
+    <div class="s-avatar" style="background:${e.color}">${e.name.split(' ').map(n=>n[0]).join('')}</div>
+    <div><div class="s-name">${e.name}</div><div class="s-dept">${e.level} · ${e.dept}</div></div>
+  </div>`).join('');
+  res.classList.toggle('open',matches.length>0);
+});
+document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))document.getElementById('searchResults').classList.remove('open');});
+
+// ════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════
+document.querySelectorAll('.nav-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab=btn.dataset.tab;
+    state.tab=tab;
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('tab-'+tab).classList.add('active');
+    if(tab==='gamification')buildGamHub();
+    updateInsight();
+  });
+});
+
+// ════════════════════════════════════════════════
+// MODE TOGGLE
+// ════════════════════════════════════════════════
+document.querySelectorAll('.mode-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.mode=btn.dataset.mode;
+    updateInsight();
+    applyFilters();
+    toast(`Switched to ${btn.dataset.mode.charAt(0).toUpperCase()+btn.dataset.mode.slice(1)} Mode`,'🔄');
+  });
+});
+
+// ════════════════════════════════════════════════
+// FILTERS
+// ════════════════════════════════════════════════
+document.getElementById('deptFilter').addEventListener('change',function(){
+  state.dept=this.value; applyFilters(); updateInsight();
+  if(this.value!=='all'){toast(`Filtered by ${this.value.charAt(0).toUpperCase()+this.value.slice(1)} department`,'🏢');}
+});
+document.getElementById('locationFilter').addEventListener('change',function(){
+  state.location=this.value; applyFilters(); updateInsight();
+});
+document.getElementById('timeFilter').addEventListener('change',function(){
+  state.time=this.value; applyFilters(); updateInsight();
+  toast(`Showing Last ${this.value.charAt(0).toUpperCase()+this.value.slice(1)} data`,'📅');
+});
+
+// ════════════════════════════════════════════════
+// DEPT CHIPS
+// ════════════════════════════════════════════════
+document.querySelectorAll('.dept-chip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    document.querySelectorAll('.dept-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    state.deptChip=chip.dataset.dept;
+    buildDeptBar();
+    updateInsight();
+  });
+});
+
+// ════════════════════════════════════════════════
+// APPLY FILTERS (global update)
+// ════════════════════════════════════════════════
+function applyFilters(){
+  const tm=state.time;
+  const multipliers={week:0.25,month:1,quarter:3};
+  const m=multipliers[tm]||1;
+
+  // KPI updates
+  const kpiMap={
+    'headcount':[1000,950,1050,1020],
+    'active':[943,900,960,930],
+    'openroles':[57,42,70,60],
+    'avgperf':[4.1,3.8,4.3,4.0],
+    'goalcomp':[87,78,91,85],
+    'productindex':[76,68,82,74],
+    'lowperf':[43,50,35,40],
+    'topperf':[198,180,210,195],
+    'attrrate':[11.2,12.4,9.8,10.6],
+    'retrate':[88.8,87.6,90.2,89.4],
+    'atrisk':[68,80,55,65],
+    'engscore':[72,68,78,74],
+    'appcount':[3842,1200,3842,9500],
+    'hires':[127,38,127,380],
+    'timetohire':[18,20,18,17],
+    'offaccept':[84,80,84,87],
+    'costperhire':[4.2,4.5,4.2,4.0],
+  };
+
+  const idx=tm==='week'?1:tm==='month'?2:3;
+  Object.keys(kpiMap).forEach(k=>{
+    const el=document.getElementById('kpi-'+k);
+    if(!el)return;
+    const prev=parseFloat(el.dataset.numVal||kpiMap[k][0])||kpiMap[k][0];
+    const next=kpiMap[k][idx]+(state.dept!=='all'?rnd(-20,20):0);
+    animateNum(el,prev,next,600);
+  });
+
+  buildDeptBar();
+  buildLeaderboard();
+  buildEmpGrid('empGrid');
+}
+
+// ════════════════════════════════════════════════
+// MODAL CLOSE
+// ════════════════════════════════════════════════
+document.getElementById('modalClose').addEventListener('click',()=>document.getElementById('modalOverlay').classList.remove('open'));
+document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
+
+// ════════════════════════════════════════════════
+// LIVE UPDATES
+// ════════════════════════════════════════════════
+const liveMessages=[
+  '🎯 +3 employees completed their goals today',
+  '🚀 Sales team hit 100% quota milestone!',
+  '🏆 New top performer: Engineering Dept',
+  '⚠️ 2 employees flagged as at-risk',
+  '🎉 5 new hires onboarded this week',
+  '📊 KPI health score improved to 89%',
+  '💡 Productivity Index up 3 pts this hour',
+  '🌟 12 employees earned new badges',
+  '📈 Offer acceptance rate hit 86% today',
+  '🔥 42-day goal streak maintained!',
+];
+
+setInterval(()=>{
+  toast(pick(liveMessages));
+  // Slightly jitter a KPI
+  const kpis=['kpi-headcount','kpi-active','kpi-goalcomp','kpi-productindex'];
+  const id=pick(kpis);
+  const el=document.getElementById(id);
+  if(el){
+    const cur=parseFloat(el.dataset.numVal||el.textContent)||100;
+    const delta=rnd(-2,5);
+    animateNum(el,cur,cur+delta,400);
+    el.classList.add('flash');
+    setTimeout(()=>el.classList.remove('flash'),600);
+  }
+  updateInsight();
+},8000);
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+function init(){
+  buildDeptBar();
+  buildEmpTypePie();
+  buildHeadcountTrend();
+  buildAgeChart();
+  buildEmpGrid('empGrid');
+  buildPerfRadar();
+  buildLeaderboard();
+  buildGoalTrend();
+  buildPerfDist();
+  buildLowPerfTable();
+  buildAttrTrend();
+  buildAttrReason();
+  buildTenureRetention();
+  buildDeptAttrition();
+  buildRiskList();
+  buildHiringTrend();
+  buildSourcePie();
+  buildOpenRoles();
+  buildHiringFunnel();
+  buildCandidateTable();
+  buildXpChart();
+  setTimeout(()=>toast('Welcome to PeopleOS — Real-time HR Intelligence 🚀'),800);
+  setTimeout(()=>updateInsight(),1200);
+}
+
+window.addEventListener('load',init);
+window.openEmployee=openEmployee;
+</script>
+</body>
+</html>
